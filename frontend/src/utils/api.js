@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api'; // تأكد من تعديل هذا في بيئات مختلفة مثل Docker
+const API_BASE_URL = 'http://localhost:3002/api';
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
@@ -23,7 +23,6 @@ async function apiCall(endpoint, options = {}) {
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
-    // Check if the response body is JSON
     const data = await response.json().catch((error) => {
       throw new Error('Failed to parse JSON response.');
     });
@@ -33,17 +32,15 @@ async function apiCall(endpoint, options = {}) {
   } catch (error) {
     console.error(`❌ API call failed for ${url}:`, error);
 
-    // Enhanced error handling
     if (error.message.includes('Failed to fetch')) {
-      throw new Error('Cannot connect to server. Make sure backend is running on port 3001.');
+      throw new Error('Cannot connect to server. Make sure backend is running on port 3002.');
     }
 
-    // Provide more specific error message
     throw error;
   }
 }
 
-// Patients API
+// باقي الكود يبقى كما هو...
 export const patientsAPI = {
   getAll: () => apiCall('/patients'),
   getById: (id) => apiCall(`/patients/${id}`),
