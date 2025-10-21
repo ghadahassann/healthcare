@@ -1,29 +1,27 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const { app } = require('../../src/server');
 
 describe('Patient API Unit Tests', () => {
+  let mongoServer;
+
   beforeAll(async () => {
-    // Use test database
-    const TEST_DB_URI = 'mongodb://127.0.0.1:27017/healthcare-test';
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
     
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
-    
-    await mongoose.connect(TEST_DB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  });
+    await mongoose.connect(mongoUri);
+  }, 30000);
 
   afterAll(async () => {
-    await mongoose.connection.dropDatabase();
     await mongoose.disconnect();
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
   });
 
   beforeEach(async () => {
-    await mongoose.connection.collection('patients').deleteMany({});
+    await mongoose.connection.db.dropDatabase();
   });
 
   describe('GET /api/patients', () => {

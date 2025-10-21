@@ -1,31 +1,28 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const { app } = require('../../src/server');
 
 describe('Appointments Integration Tests', () => {
+  let mongoServer;
   let patientId;
 
   beforeAll(async () => {
-    const TEST_DB_URI = 'mongodb://127.0.0.1:27017/healthcare-test';
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
     
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.disconnect();
-    }
-    
-    await mongoose.connect(TEST_DB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  });
+    await mongoose.connect(mongoUri);
+  }, 30000);
 
   afterAll(async () => {
-    await mongoose.connection.dropDatabase();
     await mongoose.disconnect();
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
   });
 
   beforeEach(async () => {
-    await mongoose.connection.collection('patients').deleteMany({});
-    await mongoose.connection.collection('appointments').deleteMany({});
+    await mongoose.connection.db.dropDatabase();
 
     const patientResponse = await request(app)
       .post('/api/patients')
@@ -61,6 +58,7 @@ describe('Appointments Integration Tests', () => {
     });
 
     it('should delete patient and related appointments', async () => {
+      // First create an appointment
       await request(app)
         .post('/api/appointments')
         .send({
@@ -71,12 +69,14 @@ describe('Appointments Integration Tests', () => {
           type: 'Checkup'
         });
 
+      // Then delete the patient
       const deleteResponse = await request(app)
         .delete(`/api/patients/${patientId}`);
       
       expect(deleteResponse.status).toBe(200);
       expect(deleteResponse.body.success).toBe(true);
 
+      // Verify appointments are also deleted
       const appointmentsResponse = await request(app).get('/api/appointments');
       expect(appointmentsResponse.body.data.length).toBe(0);
     });

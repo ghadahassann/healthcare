@@ -312,41 +312,38 @@ app.use((err, _req, res, _next) => {
 });
 
 /* -------------------- Mongo Connect (with retry) -------------------- */
+// في جزء الـ Mongo Connect في server.js
 const mongoURI = process.env.NODE_ENV === 'test' 
   ? 'mongodb://127.0.0.1:27017/healthcare-test'
   : 'mongodb://127.0.0.1:27017/healthcare';
 
-async function connectWithRetry(maxRetries = 10, delayMs = 2000) {
+async function connectWithRetry(maxRetries = 5, delayMs = 2000) {
   let attempt = 0;
-  while (true) {
+  while (attempt < maxRetries) {
     try {
       attempt++;
       console.log(`🔗 Connecting to MongoDB (attempt ${attempt}): ${mongoURI}`);
-      await mongoose.connect(mongoURI);
+      
+      // استخدم الـ connection options المناسبة للإصدار الجديد
+      await mongoose.connect(mongoURI, {
+        serverSelectionTimeoutMS: 5000, // وقت انتظار أقل للاتصال
+        socketTimeoutMS: 45000, // وقت انتظار للـ socket
+      });
+      
       console.log('✅ Connected to MongoDB successfully!');
-      break;
+      return;
     } catch (err) {
       console.error(`❌ MongoDB connection failed (attempt ${attempt}): ${err.message}`);
       if (attempt >= maxRetries) {
         console.error('💥 Exceeded max retries. Exiting.');
-        process.exit(1);
+        throw err;
       }
-      const wait = delayMs * Math.min(attempt, 5);
+      const wait = delayMs * Math.min(attempt, 3);
       console.log(`⏳ Retrying in ${wait} ms...`);
       await new Promise(r => setTimeout(r, wait));
     }
   }
 }
-
-mongoose.connection.on('connected', () => console.log('🟢 Mongoose connected'));
-mongoose.connection.on('disconnected', () => console.log('🟡 Mongoose disconnected'));
-mongoose.connection.on('error', (e) => console.error('🔴 Mongoose error:', e.message));
-
-process.on('SIGTERM', async () => {
-  console.log('👋 SIGTERM received. Closing server & Mongo connection...');
-  await mongoose.connection.close();
-  process.exit(0);
-});
 
 // Export the app without starting the server
 module.exports = { app, connectWithRetry, Patient, Appointment };
@@ -354,15 +351,29 @@ module.exports = { app, connectWithRetry, Patient, Appointment };
 // Start server only if this file is run directly, not when imported
 if (require.main === module) {
   (async function start() {
-    await connectWithRetry();
-    app.listen(PORT, () => {
-      console.log(`🚀 Healthcare Backend Server running on port ${PORT}`);
-      console.log(`📊 Health:      http://localhost:${PORT}/api/health`);
-      console.log(`👥 Patients:    http://localhost:${PORT}/api/patients`);
-      console.log(`📅 Appointments:http://localhost:${PORT}/api/appointments`);
-      console.log(`🏥 Medical:     http://localhost:${PORT}/api/medical`);
-      console.log(`🌱 Seed:        http://localhost:${PORT}/api/seed`);
-      console.log(`⏰ Started at:  ${new Date().toLocaleString()}`);
-    });
+    try {
+      await connectWithRetry();
+      const server = app.listen(PORT, () => {
+        console.log(`🚀 Healthcare Backend Server running on port ${PORT}`);
+        console.log(`📊 Health:      http://localhost:${PORT}/api/health`);
+        console.log(`👥 Patients:    http://localhost:${PORT}/api/patients`);
+        console.log(`📅 Appointments:http://localhost:${PORT}/api/appointments`);
+        console.log(`🏥 Medical:     http://localhost:${PORT}/api/medical`);
+        console.log(`🌱 Seed:        http://localhost:${PORT}/api/seed`);
+        console.log(`⏰ Started at:  ${new Date().toLocaleString()}`);
+      });
+
+      // Handle graceful shutdown
+      process.on('SIGTERM', async () => {
+        console.log('👋 SIGTERM received. Closing server & Mongo connection...');
+        server.close(async () => {
+          await mongoose.connection.close();
+          process.exit(0);
+        });
+      });
+    } catch (error) {
+      console.error('💥 Failed to start server:', error);
+      process.exit(1);
+    }
   })();
 }
