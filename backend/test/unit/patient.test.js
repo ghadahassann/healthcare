@@ -1,11 +1,17 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../../src/server');
+const { app } = require('../../src/server');
 
 describe('Patient API Unit Tests', () => {
   beforeAll(async () => {
     // Use test database
-    await mongoose.connect('mongodb://localhost:27017/healthcare-test', {
+    const TEST_DB_URI = 'mongodb://127.0.0.1:27017/healthcare-test';
+    
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
+    
+    await mongoose.connect(TEST_DB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -13,11 +19,10 @@ describe('Patient API Unit Tests', () => {
 
   afterAll(async () => {
     await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
+    await mongoose.disconnect();
   });
 
   beforeEach(async () => {
-    // Clear patients before each test
     await mongoose.connection.collection('patients').deleteMany({});
   });
 
@@ -31,7 +36,6 @@ describe('Patient API Unit Tests', () => {
     });
 
     it('should return all patients', async () => {
-      // Create test patient
       await request(app)
         .post('/api/patients')
         .send({

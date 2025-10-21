@@ -5,7 +5,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3004;
 
 /* -------------------- CORS -------------------- */
 app.use(cors({
@@ -44,7 +44,7 @@ const AppointmentSchema = new mongoose.Schema({
   patientName: { type: String, required: true },
   doctorName: { type: String, required: true },
   date: { type: Date, required: true },
-  status: { type: String, default: 'Scheduled' }, // Suggested values: 'Scheduled' | 'Confirmed' | 'Completed' | 'Cancelled' | 'Urgent'
+  status: { type: String, default: 'Scheduled' },
   type: String,
   notes: String
 }, { timestamps: true });
@@ -174,7 +174,6 @@ app.get('/api/medical', async (_req, res) => {
       Patient.countDocuments(),
       Appointment.countDocuments(),
       Appointment.countDocuments({ status: 'Scheduled' }),
-      // ملاحظة: غيّرها حسب ما تستخدمه فعليًا في البيانات ('Completed' أو 'Confirmed')
       Appointment.countDocuments({ status: 'Completed' }),
       Appointment.countDocuments({ status: 'Urgent' })
     ]);
@@ -234,7 +233,7 @@ app.post('/api/seed', async (_req, res) => {
         patientName: 'Maria Garcia',
         doctorName: 'Dr. Sarah Wilson',
         date: new Date('2024-01-15T14:30:00'),
-        status: 'Completed', // ← كانت "Confirmed"؛ خليّناها "Completed" لتتطابق مع الإحصائيات
+        status: 'Completed',
         type: 'Follow-up',
         notes: 'Asthma treatment follow-up'
       },
@@ -312,10 +311,11 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ success: false, error: 'Internal server error', message: err.message });
 });
 
-/* -------------------- Start & Mongo Connect (with retry) -------------------- */
-const DEFAULT_DOCKER_URI = 'mongodb://mongodb:27017/healthcare'; 
-const DEFAULT_LOCAL_URI = 'mongodb://localhost:27017/healthcare'; 
-const mongoURI = 'mongodb://127.0.0.1:27017/healthcare';
+/* -------------------- Mongo Connect (with retry) -------------------- */
+const mongoURI = process.env.NODE_ENV === 'test' 
+  ? 'mongodb://127.0.0.1:27017/healthcare-test'
+  : 'mongodb://127.0.0.1:27017/healthcare';
+
 async function connectWithRetry(maxRetries = 10, delayMs = 2000) {
   let attempt = 0;
   while (true) {
@@ -331,7 +331,7 @@ async function connectWithRetry(maxRetries = 10, delayMs = 2000) {
         console.error('💥 Exceeded max retries. Exiting.');
         process.exit(1);
       }
-      const wait = delayMs * Math.min(attempt, 5); // backoff بسيط
+      const wait = delayMs * Math.min(attempt, 5);
       console.log(`⏳ Retrying in ${wait} ms...`);
       await new Promise(r => setTimeout(r, wait));
     }
@@ -348,16 +348,21 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-(async function start() {
-  await connectWithRetry();
-  app.listen(PORT, () => {
-    console.log(`🚀 Healthcare Backend Server running on port ${PORT}`);
-    console.log(`📊 Health:      http://localhost:${PORT}/api/health`);
-    console.log(`👥 Patients:    http://localhost:${PORT}/api/patients`);
-    console.log(`📅 Appointments:http://localhost:${PORT}/api/appointments`);
-    console.log(`🏥 Medical:     http://localhost:${PORT}/api/medical`);
-    console.log(`🌱 Seed:        http://localhost:${PORT}/api/seed`);
-    console.log(`⏰ Started at:  ${new Date().toLocaleString()}`);
-  });
+// Export the app without starting the server
+module.exports = { app, connectWithRetry, Patient, Appointment };
 
-})();
+// Start server only if this file is run directly, not when imported
+if (require.main === module) {
+  (async function start() {
+    await connectWithRetry();
+    app.listen(PORT, () => {
+      console.log(`🚀 Healthcare Backend Server running on port ${PORT}`);
+      console.log(`📊 Health:      http://localhost:${PORT}/api/health`);
+      console.log(`👥 Patients:    http://localhost:${PORT}/api/patients`);
+      console.log(`📅 Appointments:http://localhost:${PORT}/api/appointments`);
+      console.log(`🏥 Medical:     http://localhost:${PORT}/api/medical`);
+      console.log(`🌱 Seed:        http://localhost:${PORT}/api/seed`);
+      console.log(`⏰ Started at:  ${new Date().toLocaleString()}`);
+    });
+  })();
+}
