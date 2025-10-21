@@ -41,42 +41,37 @@ jobs:
         directory: ./frontend/coverage
 
   # Backend Tests
-  backend-ci:
-    name: 🚀 Backend CI  
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
+  # Backend Tests
+backend-ci:
+  name: 🚀 Backend CI  
+  runs-on: ubuntu-latest
+  defaults:
+    run:
+      working-directory: ./backend
         
-    steps:
-    - name: ⬇️ Checkout code
-      uses: actions/checkout@v4
+  steps:
+  - name: ⬇️ Checkout code
+    uses: actions/checkout@v4
+    
+  - name: ⎔ Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: '18'
+      cache: 'npm'
+      cache-dependency-path: './backend/package-lock.json'
       
-    - name: ⎔ Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: './backend/package-lock.json'
-        
-    - name: 🍃 Setup MongoDB
-      uses: supercharge/mongodb-github-action@1.10.0
-      with:
-        mongodb-version: '6.0'
-        
-    - name: 📦 Install dependencies
-      run: npm ci
+  - name: 📦 Install dependencies
+    run: npm ci
+    
+  - name: ✅ Run tests
+    run: npm test
+    env:
+      NODE_ENV: test
       
-    - name: ✅ Run tests
-      run: npm test
-      env:
-        NODE_ENV: test
-        MONGODB_URI: mongodb://localhost:27017/healthcare-test
-      
-    - name: 🔍 Lint code
-      run: |
-        npm install -g eslint
-        npx eslint src/ --max-warnings=0
+  - name: 🔍 Lint code
+    run: |
+      npm install -g eslint
+      npx eslint src/ --max-warnings=0
 
   # Docker Build Test
   docker-ci:
