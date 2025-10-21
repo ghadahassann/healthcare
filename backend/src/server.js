@@ -313,7 +313,7 @@ app.use('*', (req, res) => {
   });
 });
 
-app.use((err, _req, res, _next) => {
+app.use((err, _req, res, next) => {
   console.error('❌ Server error:', err.stack);
   res.status(500).json({ success: false, error: 'Internal server error', message: err.message });
 });
