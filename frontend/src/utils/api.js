@@ -1,9 +1,13 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3001/api'; // تأكد من تعديل هذا في بيئات مختلفة مثل Docker
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
+  const url = `${API_BASE_URL}${endpoint}`;
+  
+  console.log(`🔄 API Call: ${url}`, options);
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -11,19 +15,30 @@ async function apiCall(endpoint, options = {}) {
       ...options,
     });
 
+    console.log(`📡 Response Status: ${response.status} for ${url}`);
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ API Error ${response.status}:`, errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
-    return await response.json();
+    // Check if the response body is JSON
+    const data = await response.json().catch((error) => {
+      throw new Error('Failed to parse JSON response.');
+    });
+    console.log(`✅ API Success for ${url}:`, data);
+    return data;
+
   } catch (error) {
-    console.error('API call failed:', error);
-    
-    // إضافة رسالة error أكثر وضوحاً للـ production
+    console.error(`❌ API call failed for ${url}:`, error);
+
+    // Enhanced error handling
     if (error.message.includes('Failed to fetch')) {
-      throw new Error('Cannot connect to server. Please check your internet connection and try again.');
+      throw new Error('Cannot connect to server. Make sure backend is running on port 3001.');
     }
-    
+
+    // Provide more specific error message
     throw error;
   }
 }
@@ -40,20 +55,9 @@ export const patientsAPI = {
     method: 'PUT',
     body: JSON.stringify(patientData),
   }),
-  delete: async (id) => {
-    try {
-      const response = await apiCall(`/patients/${id}`, {
-        method: 'DELETE',
-      });
-      return response;
-    } catch (error) {
-      if (error.message.includes('404')) {
-        console.warn('DELETE endpoint not available, using mock delete');
-        return { success: true, message: 'Patient deleted (mock)' };
-      }
-      throw error;
-    }
-  },
+  delete: (id) => apiCall(`/patients/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 // Appointments API
@@ -68,20 +72,14 @@ export const appointmentsAPI = {
     method: 'PUT',
     body: JSON.stringify(appointmentData),
   }),
-  delete: async (id) => {
-    try {
-      const response = await apiCall(`/appointments/${id}`, {
-        method: 'DELETE',
-      });
-      return response;
-    } catch (error) {
-      if (error.message.includes('404')) {
-        console.warn('DELETE endpoint not available, using mock delete');
-        return { success: true, message: 'Appointment deleted (mock)' };
-      }
-      throw error;
-    }
-  },
+  delete: (id) => apiCall(`/appointments/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
+// Medical API
+export const medicalAPI = {
+  getStats: () => apiCall('/medical'),
 };
 
 // Seed API
@@ -89,6 +87,13 @@ export const seedAPI = {
   seedData: () => apiCall('/seed', {
     method: 'POST',
   }),
+};
+
+export const apiService = {
+  patients: patientsAPI,
+  appointments: appointmentsAPI,
+  medical: medicalAPI,
+  seed: seedAPI
 };
 
 export default apiCall;

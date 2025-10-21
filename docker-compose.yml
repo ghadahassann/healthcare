@@ -1,58 +1,47 @@
 version: '3.8'
 
 services:
-  # MongoDB Service (موجود بالفعل)
   mongodb:
     image: mongo:latest
     container_name: healthcare-mongodb
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_DATABASE=healthcare
+      - MONGODB_URI=mongodb://mongodb:27017/healthcare
     volumes:
       - mongodb_data:/data/db
-    networks:
-      - healthcare-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Backend Service (ضف هذا)
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
     container_name: healthcare-backend
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongodb:27017/healthcare  # استخدم اسم خدمة MongoDB هنا
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/healthcare
-      - JWT_SECRET=healthcare-secret-key-2024
-    volumes:
-      - ./backend/src:/app/src
-    networks:
-      - healthcare-network
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     restart: unless-stopped
 
-  # Frontend Service (ضف هذا)
   frontend:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     container_name: healthcare-frontend
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3001
-    networks:
-      - healthcare-network
     depends_on:
       - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001/api 
+    restart: unless-stopped
 
 volumes:
   mongodb_data:
-
-networks:
-  healthcare-network:
-    driver: bridge
