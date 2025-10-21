@@ -1,0 +1,140 @@
+.appointments-page {
+  padding: 24px;
+  background: var(--light-bg);
+  min-height: 100%;
+}
+
+.appointment-form {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--light-bg);
+}
+
+.appointment-form h4 {
+  margin-bottom: 20px;
+  color: var(--text-dark);
+}
+
+.appointment-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.appointment-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--white);
+  transition: all 0.3s ease;
+}
+
+.appointment-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.appointment-info {
+  flex: 1;
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.appointment-header h4 {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1.1rem;
+}
+
+.appointment-details p {
+  margin: 6px 0;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appointment-details i {
+  width: 16px;
+  color: var(--primary-color);
+}
+
+.appointment-notes {
+  font-style: italic;
+  background: var(--light-bg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-top: 10px !important;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.status-completed {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.status-cancelled {
+  background: rgba(158, 158, 158, 0.1);
+  color: #9e9e9e;
+  border: 1px solid rgba(158, 158, 158, 0.3);
+}
+
+@media (max-width: 768px) {
+  .appointment-card {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .appointment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .appointment-actions {
+    align-self: flex-end;
+  }
+}
+.btn-danger {
+  background: var(--danger-color);
+  color: var(--white);
+  border: none;
+  padding: 8px 16px;
+}
+
+.btn-warning {
+  background: var(--warning-color);
+  color: var(--white);
+  border: none;
+  padding: 8px 16px;
+}
+
+.appointment-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

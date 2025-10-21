@@ -1,0 +1,219 @@
+.medical-records-page {
+  padding: 24px;
+  background: var(--light-bg);
+  min-height: 100%;
+}
+
+.medical-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+}
+
+.patients-sidebar {
+  height: fit-content;
+}
+
+.patients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.patient-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.patient-item:hover {
+  border-color: var(--primary-color);
+  background: var(--primary-bg);
+}
+
+.patient-item.active {
+  border-color: var(--primary-color);
+  background: var(--primary-bg);
+}
+
+.patient-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--primary-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+.patient-details h4 {
+  margin: 0 0 4px 0;
+  color: var(--text-dark);
+  font-size: 1rem;
+}
+
+.patient-details p {
+  margin: 0 0 6px 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.medical-details {
+  min-height: 600px;
+}
+
+.medical-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.medical-section {
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.medical-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px 0;
+  color: var(--text-dark);
+  font-size: 1.1rem;
+}
+
+.medical-section h4 i {
+  color: var(--primary-color);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.info-item span {
+  color: var(--text-dark);
+  font-size: 1rem;
+}
+
+.condition-improving {
+  background: rgba(255, 179, 0, 0.1);
+  color: var(--warning-color);
+  border: 1px solid rgba(255, 179, 0, 0.3);
+}
+
+.allergies-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.allergy-tag {
+  padding: 4px 12px;
+  background: rgba(255, 179, 0, 0.1);
+  color: var(--warning-color);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  border: 1px solid rgba(255, 179, 0, 0.3);
+}
+
+.no-data {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.empty-selection .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-selection .empty-state i {
+  font-size: 4rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.empty-selection .empty-state h4 {
+  margin-bottom: 10px;
+  color: var(--text-dark);
+}
+
+.empty-selection .empty-state p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1024px) {
+  .medical-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.update-form {
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--light-bg);
+  margin-bottom: 20px;
+}
+
+.update-form h4 {
+  margin-bottom: 20px;
+  color: var(--text-dark);
+}
+
+.allergies-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.allergy-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.allergy-input-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.btn-small {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
