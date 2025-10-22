@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3002';
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3002';
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
@@ -33,7 +33,8 @@ async function apiCall(endpoint, options = {}) {
     console.error(`❌ API call failed for ${url}:`, error);
 
     if (error.message.includes('Failed to fetch')) {
-      throw new Error('Cannot connect to server. Make sure backend is running on port 3002.');
+      const env = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+      throw new Error(`Cannot connect to server (${env}). Make sure backend is running.`);
     }
 
     throw error;
