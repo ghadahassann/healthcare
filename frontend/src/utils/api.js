@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3002/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3002';
 
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
