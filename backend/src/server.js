@@ -6,20 +6,34 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://healthcaresystem22.netlify.app'
+];
 
-/* -------------------- CORS -------------------- */
+// CORS configuration
 app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:3001',
-    'http://localhost:3002', 
-    'http://localhost:3003',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3003'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      /http:\/\/localhost(:\d+)?$/,
+      /http:\/\/127.0.0.1(:\d+)?$/,
+      'https://healthcaresystem22.netlify.app/',
+      'https://*.railway.app'
+    ];
+    
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') return origin === allowed;
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return false;
+    });
+
+    callback(null, isAllowed);
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
 /* -------------------- Request logging -------------------- */
@@ -356,6 +370,10 @@ async function connectWithRetry(maxRetries = 5, delayMs = 2000) {
 module.exports = { app, connectWithRetry, Patient, Appointment };
 
 // Start server only if this file is run directly, not when imported
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
+});
 if (require.main === module) {
   (async function start() {
     try {
@@ -368,6 +386,7 @@ if (require.main === module) {
         console.log(`🏥 Medical:     http://localhost:${PORT}/api/medical`);
         console.log(`🌱 Seed:        http://localhost:${PORT}/api/seed`);
         console.log(`⏰ Started at:  ${new Date().toLocaleString()}`);
+        
       });
 
       // Handle graceful shutdown
