@@ -370,10 +370,7 @@ async function connectWithRetry(maxRetries = 5, delayMs = 2000) {
 module.exports = { app, connectWithRetry, Patient, Appointment };
 
 // Start server only if this file is run directly, not when imported
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-});
+
 if (require.main === module) {
   (async function start() {
     try {
