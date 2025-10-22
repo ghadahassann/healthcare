@@ -1,0 +1,6 @@
+{
+  "name": "healthcare-app",
+  "dependencies": {
+    "mongodb": "^5.0.0"
+  }
+}
